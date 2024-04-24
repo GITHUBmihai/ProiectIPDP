@@ -17,61 +17,85 @@ class ImageProcessingApp:
         self.grayscale_button = tk.Button(root, text="Grayscale", command=self.apply_grayscale)
         self.grayscale_button.grid(row=1, column=0, padx=10, pady=10)
 
-        self.blur_button = tk.Button(root, text="Blur", command=self.apply_blur)
-        self.blur_button.grid(row=2, column=0, padx=10, pady=10)
+        self.low_blur_button = tk.Button(root, text="Low Blur", command=self.apply_low_blur)
+        self.low_blur_button.grid(row=2, column=0, padx=10, pady=10)
+
+        self.medium_blur_button = tk.Button(root, text="Medium Blur", command=self.apply_medium_blur)
+        self.medium_blur_button.grid(row=3, column=0, padx=10, pady=10)
+
+        self.high_blur_button = tk.Button(root, text="High Blur", command=self.apply_high_blur)
+        self.high_blur_button.grid(row=4, column=0, padx=10, pady=10)
 
         self.sharpen_button = tk.Button(root, text="Sharpen", command=self.apply_sharpen)
-        self.sharpen_button.grid(row=3, column=0, padx=10, pady=10)
+        self.sharpen_button.grid(row=5, column=0, padx=10, pady=10)
 
         self.inverted_button = tk.Button(root, text="Inverted", command=self.apply_inverted)
-        self.inverted_button.grid(row=4, column=0, padx=10, pady=10)
+        self.inverted_button.grid(row=6, column=0, padx=10, pady=10)
 
         # Bind mouse hover events to change button color
         self.select_button.bind("<Enter>", lambda event: self.change_button_color(self.select_button))
-        self.select_button.bind("<Leave>", lambda event: self.change_button_color(self.select_button))
+        self.select_button.bind("<Leave>", lambda event: self.reset_button_color(self.select_button))
         self.grayscale_button.bind("<Enter>", lambda event: self.change_button_color(self.grayscale_button))
-        self.grayscale_button.bind("<Leave>", lambda event: self.change_button_color(self.grayscale_button))
-        self.blur_button.bind("<Enter>", lambda event: self.change_button_color(self.blur_button))
-        self.blur_button.bind("<Leave>", lambda event: self.change_button_color(self.blur_button))
+        self.grayscale_button.bind("<Leave>", lambda event: self.reset_button_color(self.grayscale_button))
+        self.low_blur_button.bind("<Enter>", lambda event: self.change_button_color(self.low_blur_button))
+        self.low_blur_button.bind("<Leave>", lambda event: self.reset_button_color(self.low_blur_button))
+        self.medium_blur_button.bind("<Enter>", lambda event: self.change_button_color(self.medium_blur_button))
+        self.medium_blur_button.bind("<Leave>", lambda event: self.reset_button_color(self.medium_blur_button))
+        self.high_blur_button.bind("<Enter>", lambda event: self.change_button_color(self.high_blur_button))
+        self.high_blur_button.bind("<Leave>", lambda event: self.reset_button_color(self.high_blur_button))
         self.sharpen_button.bind("<Enter>", lambda event: self.change_button_color(self.sharpen_button))
-        self.sharpen_button.bind("<Leave>", lambda event: self.change_button_color(self.sharpen_button))
+        self.sharpen_button.bind("<Leave>", lambda event: self.reset_button_color(self.sharpen_button))
         self.inverted_button.bind("<Enter>", lambda event: self.change_button_color(self.inverted_button))
-        self.inverted_button.bind("<Leave>", lambda event: self.change_button_color(self.inverted_button))
+        self.inverted_button.bind("<Leave>", lambda event: self.reset_button_color(self.inverted_button))
 
         # Variables
         self.image_path = None
         self.image = None
+        self.original_image = None
 
     def select_image(self):
         self.image_path = filedialog.askopenfilename()
         if self.image_path:
+            self.original_image = cv2.imread(self.image_path)
             self.image = cv2.imread(self.image_path)
-            self.show_image()
+        self.show_image()
 
     def apply_grayscale(self):
-        if self.image is not None:
-            gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        if self.original_image is not None:
+            gray_image = cv2.cvtColor(self.original_image, cv2.COLOR_BGR2GRAY)
             self.image = gray_image
             self.show_image()
 
-    def apply_blur(self):
-        if self.image is not None:
-            blurred_image = cv2.GaussianBlur(self.image, (5, 5), 0)
+    def apply_low_blur(self):
+        if self.original_image is not None:
+            blurred_image = cv2.GaussianBlur(self.original_image, (17, 17), 10)
+            self.image = blurred_image
+            self.show_image()
+
+    def apply_medium_blur(self):
+        if self.original_image is not None:
+            blurred_image = cv2.GaussianBlur(self.original_image, (31, 31), 15)
+            self.image = blurred_image
+            self.show_image()
+
+    def apply_high_blur(self):
+        if self.original_image is not None:
+            blurred_image = cv2.GaussianBlur(self.original_image, (61, 61), 19)
             self.image = blurred_image
             self.show_image()
 
     def apply_sharpen(self):
-        if self.image is not None:
+        if self.original_image is not None:
             kernel = np.array([[-1, -1, -1],
                                [-1, 9, -1],
                                [-1, -1, -1]])
-            sharpened_image = cv2.filter2D(self.image, -1, kernel)
+            sharpened_image = cv2.filter2D(self.original_image, -1, kernel)
             self.image = sharpened_image
             self.show_image()
 
     def apply_inverted(self):
-        if self.image is not None:
-            inverted_image = cv2.bitwise_not(self.image)
+        if self.original_image is not None:
+            inverted_image = cv2.bitwise_not(self.original_image)
             self.image = inverted_image
             self.show_image()
 
@@ -79,13 +103,16 @@ class ImageProcessingApp:
         if self.image is not None:
             img = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(img)
-            img = ImageTk.PhotoImage(img)
-            panel = tk.Label(root, image=img)
+            img = ImageTk.PhotoImage(img)  # creates object from the image
+            panel = tk.Label(root, image=img)  # display in the Tkinter window
             panel.image = img
-            panel.grid(row=0, column=1, rowspan=5, padx=10, pady=10)
+            panel.grid(row=0, column=1, rowspan=300, padx=10, pady=10)
 
     def change_button_color(self, button):
-        button.config(bg="purple", activebackground="purple")
+        button.config(bg="#AAAAAA", activebackground="#AAAAAA")
+
+    def reset_button_color(self, button):
+        button.config(bg="SystemButtonFace", activebackground="SystemButtonFace")
 
 if __name__ == "__main__":
     root = tk.Tk()
