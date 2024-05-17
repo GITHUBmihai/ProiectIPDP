@@ -9,6 +9,7 @@ class ImageProcessingApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Image Processing App")
+        self.root.state('zoomed')
 
         # Create buttons
         self.select_button = tk.Button(root, text="Select Image", command=self.select_image)
@@ -58,7 +59,31 @@ class ImageProcessingApp:
         if self.image_path:
             self.original_image = cv2.imread(self.image_path)
             self.image = cv2.imread(self.image_path)
+            self.resize_image_to_fit_screen()                                   #functioneaza numai pt imaginea selectata, nu pt aplicarea filtrelor
         self.show_image()
+
+    def resize_image_to_fit_screen(self):
+        if self.image is not None:
+            # Get the dimensions of the screen
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
+
+            # Get the dimensions of the image
+            image_width, image_height = self.image.shape[1], self.image.shape[0]
+
+            # Calculate scaling factors
+            width_scale = screen_width / image_width
+            height_scale = screen_height / image_height
+
+            # Choose the smaller scale to fit the entire image within the screen
+            scale = min(width_scale, height_scale)
+
+            # Resize the image using OpenCV
+            self.image = cv2.resize(self.image, None, fx=scale, fy=scale)
+            self.original_image = cv2.resize(self.original_image, None, fx=scale, fy=scale)
+
+            # Update the image displayed in the GUI
+            self.show_image()
 
     def apply_grayscale(self):
         if self.original_image is not None:
@@ -107,6 +132,7 @@ class ImageProcessingApp:
             panel = tk.Label(root, image=img)  # display in the Tkinter window
             panel.image = img
             panel.grid(row=0, column=1, rowspan=300, padx=10, pady=10)
+
 
     def change_button_color(self, button):
         button.config(bg="#AAAAAA", activebackground="#AAAAAA")
